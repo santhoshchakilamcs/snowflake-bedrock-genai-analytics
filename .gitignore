@@ -1,0 +1,11 @@
+# Data, databases, credentials, local caches — never committed.
+data/
+*.db
+*.db-wal
+*.db-shm
+.env
+__pycache__/
+.pytest_cache/
+.venv/
+*.pyc
+.DS_Store

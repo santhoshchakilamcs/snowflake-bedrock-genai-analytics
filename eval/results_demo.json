@@ -1,0 +1,172 @@
+{
+  "mode": "demo",
+  "n": 20,
+  "execution_success": 20,
+  "correct": 20,
+  "execution_success_rate": 1.0,
+  "correctness_rate": 1.0,
+  "latency_p50_ms": 357.0967469995594,
+  "latency_p95_ms": 841.9110109999111,
+  "results": [
+    {
+      "question": "What was our total revenue?",
+      "sql": "SELECT SUM(QUANTITY * PRICE) AS revenue FROM RETAIL_TRANSACTIONS WHERE QUANTITY > 0",
+      "executed": true,
+      "matched": true,
+      "latency_ms": 151.95676300027117,
+      "error": null
+    },
+    {
+      "question": "What was total revenue in 2010?",
+      "sql": "SELECT SUM(QUANTITY * PRICE) AS revenue FROM RETAIL_TRANSACTIONS WHERE QUANTITY > 0 AND SUBSTR(INVOICEDATE, 1, 4) = '2010'",
+      "executed": true,
+      "matched": true,
+      "latency_ms": 189.75474600028974,
+      "error": null
+    },
+    {
+      "question": "What was total revenue in December 2010?",
+      "sql": "SELECT SUM(QUANTITY * PRICE) AS revenue FROM RETAIL_TRANSACTIONS WHERE QUANTITY > 0 AND SUBSTR(INVOICEDATE, 1, 4) = '2010' AND SUBSTR(INVOICEDATE, 1, 7) = '2010-12'",
+      "executed": true,
+      "matched": true,
+      "latency_ms": 198.82642999982636,
+      "error": null
+    },
+    {
+      "question": "What are the top 5 products by revenue?",
+      "sql": "SELECT DESCRIPTION, SUM(QUANTITY * PRICE) AS revenue FROM RETAIL_TRANSACTIONS WHERE QUANTITY > 0 AND DESCRIPTION IS NOT NULL GROUP BY DESCRIPTION ORDER BY revenue DESC LIMIT 5",
+      "executed": true,
+      "matched": true,
+      "latency_ms": 944.2724850005106,
+      "error": null
+    },
+    {
+      "question": "What are the top 10 products by quantity sold?",
+      "sql": "SELECT DESCRIPTION, SUM(QUANTITY) AS units FROM RETAIL_TRANSACTIONS WHERE QUANTITY > 0 AND DESCRIPTION IS NOT NULL GROUP BY DESCRIPTION ORDER BY units DESC LIMIT 10",
+      "executed": true,
+      "matched": true,
+      "latency_ms": 830.2200460002496,
+      "error": null
+    },
+    {
+      "question": "Which country generated the most revenue?",
+      "sql": "SELECT COUNTRY, SUM(QUANTITY * PRICE) AS revenue FROM RETAIL_TRANSACTIONS WHERE QUANTITY > 0 GROUP BY COUNTRY ORDER BY revenue DESC LIMIT 1",
+      "executed": true,
+      "matched": true,
+      "latency_ms": 654.3340629996237,
+      "error": null
+    },
+    {
+      "question": "What are the top 5 countries by revenue?",
+      "sql": "SELECT COUNTRY, SUM(QUANTITY * PRICE) AS revenue FROM RETAIL_TRANSACTIONS WHERE QUANTITY > 0 GROUP BY COUNTRY ORDER BY revenue DESC LIMIT 5",
+      "executed": true,
+      "matched": true,
+      "latency_ms": 663.9657569994597,
+      "error": null
+    },
+    {
+      "question": "How many orders did we have?",
+      "sql": "SELECT COUNT(DISTINCT INVOICE) AS orders FROM RETAIL_TRANSACTIONS",
+      "executed": true,
+      "matched": true,
+      "latency_ms": 388.3985419997771,
+      "error": null
+    },
+    {
+      "question": "How many orders were there in 2011?",
+      "sql": "SELECT COUNT(DISTINCT INVOICE) AS orders FROM RETAIL_TRANSACTIONS WHERE SUBSTR(INVOICEDATE, 1, 4) = '2011'",
+      "executed": true,
+      "matched": true,
+      "latency_ms": 282.93847699933394,
+      "error": null
+    },
+    {
+      "question": "How many distinct customers do we have?",
+      "sql": "SELECT COUNT(DISTINCT CUSTOMERID) AS customers FROM RETAIL_TRANSACTIONS",
+      "executed": true,
+      "matched": true,
+      "latency_ms": 276.2527239992778,
+      "error": null
+    },
+    {
+      "question": "How many distinct products do we sell?",
+      "sql": "SELECT COUNT(DISTINCT STOCKCODE) AS products FROM RETAIL_TRANSACTIONS",
+      "executed": true,
+      "matched": true,
+      "latency_ms": 491.0996160006107,
+      "error": null
+    },
+    {
+      "question": "What was the average order value?",
+      "sql": "SELECT SUM(QUANTITY * PRICE) / COUNT(DISTINCT INVOICE) AS avg_order_value FROM RETAIL_TRANSACTIONS WHERE QUANTITY > 0",
+      "executed": true,
+      "matched": true,
+      "latency_ms": 325.7949519993417,
+      "error": null
+    },
+    {
+      "question": "Who are our top 5 customers by total spend?",
+      "sql": "SELECT CUSTOMERID, SUM(QUANTITY * PRICE) AS spend FROM RETAIL_TRANSACTIONS WHERE QUANTITY > 0 AND CUSTOMERID IS NOT NULL GROUP BY CUSTOMERID ORDER BY spend DESC LIMIT 5",
+      "executed": true,
+      "matched": true,
+      "latency_ms": 578.7429920001159,
+      "error": null
+    },
+    {
+      "question": "What was revenue from the United Kingdom?",
+      "sql": "SELECT SUM(QUANTITY * PRICE) AS revenue FROM RETAIL_TRANSACTIONS WHERE QUANTITY > 0 AND COUNTRY = 'United Kingdom'",
+      "executed": true,
+      "matched": true,
+      "latency_ms": 166.7257859999154,
+      "error": null
+    },
+    {
+      "question": "What was revenue from Germany in 2010?",
+      "sql": "SELECT SUM(QUANTITY * PRICE) AS revenue FROM RETAIL_TRANSACTIONS WHERE QUANTITY > 0 AND COUNTRY = 'Germany' AND SUBSTR(INVOICEDATE, 1, 4) = '2010'",
+      "executed": true,
+      "matched": true,
+      "latency_ms": 122.25733200011746,
+      "error": null
+    },
+    {
+      "question": "What is the best-selling product by quantity?",
+      "sql": "SELECT DESCRIPTION, SUM(QUANTITY) AS units FROM RETAIL_TRANSACTIONS WHERE QUANTITY > 0 AND DESCRIPTION IS NOT NULL GROUP BY DESCRIPTION ORDER BY units DESC LIMIT 1",
+      "executed": true,
+      "matched": true,
+      "latency_ms": 836.5235649998795,
+      "error": null
+    },
+    {
+      "question": "What was total revenue in November 2011?",
+      "sql": "SELECT SUM(QUANTITY * PRICE) AS revenue FROM RETAIL_TRANSACTIONS WHERE QUANTITY > 0 AND SUBSTR(INVOICEDATE, 1, 4) = '2011' AND SUBSTR(INVOICEDATE, 1, 7) = '2011-11'",
+      "executed": true,
+      "matched": true,
+      "latency_ms": 196.6415010001583,
+      "error": null
+    },
+    {
+      "question": "How many orders came from France?",
+      "sql": "SELECT COUNT(DISTINCT INVOICE) AS orders FROM RETAIL_TRANSACTIONS WHERE COUNTRY = 'France'",
+      "executed": true,
+      "matched": true,
+      "latency_ms": 107.88167900045664,
+      "error": null
+    },
+    {
+      "question": "What are the top 3 products by revenue in 2011?",
+      "sql": "SELECT DESCRIPTION, SUM(QUANTITY * PRICE) AS revenue FROM RETAIL_TRANSACTIONS WHERE QUANTITY > 0 AND DESCRIPTION IS NOT NULL  AND SUBSTR(INVOICEDATE, 1, 4) = '2011'GROUP BY DESCRIPTION ORDER BY revenue DESC LIMIT 3",
+      "executed": true,
+      "matched": true,
+      "latency_ms": 553.3724189999703,
+      "error": null
+    },
+    {
+      "question": "Which month had the highest revenue?",
+      "sql": "SELECT SUBSTR(INVOICEDATE, 1, 7) AS month, SUM(QUANTITY * PRICE) AS revenue FROM RETAIL_TRANSACTIONS WHERE QUANTITY > 0 GROUP BY month ORDER BY revenue DESC LIMIT 1",
+      "executed": true,
+      "matched": true,
+      "latency_ms": 718.8122460001978,
+      "error": null
+    }
+  ]
+}

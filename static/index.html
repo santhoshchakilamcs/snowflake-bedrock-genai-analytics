@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>GenAI Analytics Copilot — Snowflake + AWS Bedrock</title>
+<style>
+  body { font-family: system-ui, -apple-system, sans-serif; max-width: 900px;
+         margin: 2rem auto; padding: 0 1rem; color: #1a1a1a; }
+  .banner { padding: 0.6rem 1rem; border-radius: 6px; font-weight: 600;
+            margin-bottom: 1rem; }
+  .demo { background: #fff3cd; border: 1px solid #e0a800; }
+  .live { background: #d4edda; border: 1px solid #28a745; }
+  input[type=text] { width: 75%; padding: 0.6rem; font-size: 1rem; }
+  button { padding: 0.6rem 1.2rem; font-size: 1rem; cursor: pointer; }
+  pre { background: #f4f4f4; padding: 0.8rem; overflow-x: auto; }
+  table { border-collapse: collapse; margin-top: 0.5rem; }
+  th, td { border: 1px solid #ccc; padding: 0.4rem 0.8rem; text-align: left; }
+  .bar { height: 18px; background: #4a90d9; border-radius: 3px; }
+  .bar-row { display: flex; align-items: center; gap: 0.5rem; margin: 0.25rem 0; }
+  .bar-label { width: 260px; overflow: hidden; text-overflow: ellipsis;
+               white-space: nowrap; font-size: 0.9rem; }
+  .muted { color: #666; font-size: 0.9rem; }
+  .examples button { margin: 0.2rem; font-size: 0.85rem; padding: 0.3rem 0.6rem; }
+</style>
+</head>
+<body>
+<h1>GenAI Analytics Copilot</h1>
+<div id="banner" class="banner demo">Loading mode…</div>
+<p class="muted">Ask a question in English about the UCI Online Retail II data
+(Dec 2009 – Dec 2011, 1,067,371 order lines). The copilot retrieves schema
+context, writes SQL, runs it on the warehouse, and answers with results
+and a chart.</p>
+
+<form id="ask-form">
+  <input type="text" id="q" placeholder="e.g. What are the top 5 products by revenue?"
+         autocomplete="off">
+  <button type="submit">Ask</button>
+</form>
+<div class="examples">
+  <button data-q="What was our total revenue?">Total revenue</button>
+  <button data-q="What are the top 5 products by revenue?">Top 5 products</button>
+  <button data-q="Which country generated the most revenue?">Top country</button>
+  <button data-q="What was total revenue in December 2010?">Dec 2010 revenue</button>
+  <button data-q="How many distinct customers do we have?">Customers</button>
+  <button data-q="Which month had the highest revenue?">Best month</button>
+</div>
+
+<div id="result"></div>
+
+<h2>Monitoring</h2>
+<button id="refresh-mon">Refresh</button>
+<div id="monitoring" class="muted">No queries yet.</div>
+
+<script>
+async function loadHealth() {
+  const r = await fetch('/api/health');
+  const h = await r.json();
+  const b = document.getElementById('banner');
+  if (h.mode === 'live') {
+    b.className = 'banner live';
+    b.textContent = 'LIVE MODE — real Snowflake warehouse + AWS Bedrock LLM';
+  } else {
+    b.className = 'banner demo';
+    b.textContent = 'DEMO MODE — local SQLite warehouse + deterministic SQL translator (no Snowflake/Bedrock credentials configured). Same pipeline, same SQL dialect.';
+  }
+  b.textContent += '  |  ' + h.retail_rows.toLocaleString() + ' retail rows, '
+    + h.countries + ' countries.';
+}
+async function loadMonitoring() {
+  const r = await fetch('/api/monitoring');
+  const m = await r.json();
+  const el = document.getElementById('monitoring');
+  if (!m.total) { el.textContent = 'No queries yet.'; return; }
+  let html = `<p>Total queries: ${m.total} · Success rate: ${(m.success_rate * 100).toFixed(1)}%`
+    + ` · Latency p50: ${m.p50_ms ? m.p50_ms.toFixed(1) : '—'} ms`
+    + ` · p95: ${m.p95_ms ? m.p95_ms.toFixed(1) : '—'} ms</p>`;
+  html += '<table><tr><th>Time (UTC)</th><th>Question</th><th>OK</th><th>Latency</th></tr>';
+  for (const row of m.recent) {
+    html += `<tr><td>${row.TS}</td><td>${row.QUESTION}</td>`
+      + `<td>${row.SUCCESS ? 'yes' : 'no'}</td><td>${row.LATENCY_MS.toFixed(1)} ms</td></tr>`;
+  }
+  el.innerHTML = html + '</table>';
+}
+function renderChart(columns, rows) {
+  if (columns.length !== 2 || rows.length < 2) return '';
+  const vals = rows.map(r => Number(r[1])).filter(v => !isNaN(v));
+  if (vals.length !== rows.length) return '';
+  const max = Math.max(...vals);
+  let html = '<h3>Chart</h3>';
+  rows.forEach(r => {
+    const w = max ? (Number(r[1]) / max * 100) : 0;
+    html += `<div class="bar-row"><span class="bar-label">${r[0]}</span>`
+      + `<div class="bar" style="width:${w.toFixed(1)}%"></div>`
+      + `<span>${Number(r[1]).toLocaleString(undefined, {maximumFractionDigits: 2})}</span></div>`;
+  });
+  return html;
+}
+document.getElementById('ask-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const q = document.getElementById('q').value.trim();
+  if (!q) return;
+  const el = document.getElementById('result');
+  el.innerHTML = '<p class="muted">Asking…</p>';
+  const r = await fetch('/api/ask', { method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({question: q}) });
+  const d = await r.json();
+  if (!d.success) {
+    el.innerHTML = `<p><b>Could not answer:</b> ${d.error}</p>`;
+    loadMonitoring();
+    return;
+  }
+  let html = `<h3>Answer</h3><p>${d.answer.replace(/\n/g, '<br>')}</p>`;
+  html += `<h3>Generated SQL</h3><pre>${d.sql}</pre>`;
+  html += `<p class="muted">Latency: ${d.latency_ms.toFixed(1)} ms · Mode: ${d.mode}</p>`;
+  html += renderChart(d.columns, d.rows);
+  html += '<h3>Results</h3><table><tr>' + d.columns.map(c => `<th>${c}</th>`).join('') + '</tr>';
+  for (const row of d.rows.slice(0, 50)) {
+    html += '<tr>' + row.map(v => `<td>${v === null ? '' : v}</td>`).join('') + '</tr>';
+  }
+  el.innerHTML = html + '</table>';
+  loadMonitoring();
+});
+document.querySelectorAll('.examples button').forEach(b => {
+  b.addEventListener('click', () => {
+    document.getElementById('q').value = b.dataset.q;
+    document.getElementById('ask-form').requestSubmit();
+  });
+});
+document.getElementById('refresh-mon').addEventListener('click', loadMonitoring);
+loadHealth();
+loadMonitoring();
+</script>
+</body>
+</html>
